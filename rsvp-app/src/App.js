@@ -1,88 +1,103 @@
 import React, { Component } from 'react';
 
+import Header from './Components/Header';
+import Main from './Components/Main';
+
+import { v4 as uuidv4 } from 'uuid';
+
 
 class App extends Component {
 
   state = {
-    guests: [
-      {
-        name: 'Sparky',
-        isConfirmed: false
-      },
-      {
-        name: 'Jess',
-        isConfirmed: true
-      }
-    ]
+    isFiltered: false,
+    pendingGuest: "",
+    guests: []
   }
 
+  setNameAt = (name, indexToChange) => {
+    this.setState({
+      guests: this.state.guests.map((guest, index) => {
+        if (index === indexToChange) {
+          return {
+            ...guest,
+            name
+          }
+        }
+        return guest;
+      })
+    })
+  }
+
+  togglePropertyAt = (property, indexToChange) =>
+    this.setState({
+      guests: this.state.guests.map(guest => {
+        if (guest.id === indexToChange) {
+          return {
+            ...guest,
+            [property]: !guest[property]
+          }
+        }
+        return guest;
+      })
+    });
+
+  toggleFilter = () => this.setState({ isFiltered: !this.state.isFiltered })
+  
   getTotalInvited = () => this.state.guests.length;
+
+  getAttendingGuests = () => this.state.guests.reduce(
+    (total, guest) => guest.isConfirmed ? total + 1 : total, 0
+  )
+  
+  handleNameInput = e => {
+    this.setState({ pendingGuest: e.target.value })
+  }
+
+  addGuest = e => {
+
+    this.setState({
+      guests: [
+        {
+          name: this.state.pendingGuest,
+          isConfirmed: false,
+          isEditing: false,
+          id: uuidv4()
+        },
+        ...this.state.guests
+      ],
+      pendingGuest: ''
+    });
+  }
+
+  removeGuest = (indexToRemove) => {
+    this.setState({
+      guests: this.state.guests.filter( guest => guest.id !== indexToRemove)
+    })
+  }
   
   render() {
+
     return (
       <div className="App">
-        <header>
-          <h1>RSVP</h1>
-          <p>A Treehouse App</p>
-          <form>
-              <input type="text" value="Safia" placeholder="Invite Someone" />
-              <button type="submit" name="submit" value="submit">Submit</button>
-          </form>
-        </header>
-        <div className="main">
-          <div>
-            <h2>Invitees</h2>
-            <label>
-              <input type="checkbox" /> Hide those who haven't responded
-            </label>
-          </div>
-          <table className="counter">
-            <tbody>
-              <tr>
-                <td>Attending:</td>
-                <td>2</td>
-              </tr>
-              <tr>
-                <td>Unconfirmed:</td>
-                <td>1</td>
-              </tr>
-              <tr>
-                <td>Total:</td>
-                <td>3</td>
-              </tr>
-            </tbody>
-          </table>
-          <ul>
-            <li className="pending"><span>Safia</span></li>
-            <li className="responded"><span>Iver</span>
-              <label>
-                <input type="checkbox" checked /> Confirmed
-              </label>
-              <button>edit</button>
-              <button>remove</button>
-            </li>
-            <li className="responded">
-              <span>Corrina</span>
-              <label>
-                <input type="checkbox" checked /> Confirmed
-              </label>
-              <button>edit</button>
-              <button>remove</button>
-            </li>
-            <li>
-              <span>Joel</span>
-              <label>
-                <input type="checkbox" /> Confirmed
-              </label>
-              <button>edit</button>
-              <button>remove</button>
-            </li>
-          </ul>
-        </div>
+        <Header 
+          addGuest={ this.addGuest }
+          pendingGuest={ this.state.pendingGuest }
+          handleNameInput={ this.handleNameInput }
+        />
+        <Main 
+          isFiltered={ this.state.isFiltered }
+          toggleFilter={ this.toggleFilter }
+          getTotalInvited={ this.getTotalInvited }
+          getAttendingGuests={ this.getAttendingGuests }
+          guests={ this.state.guests }
+          togglePropertyAt={ this.togglePropertyAt }
+          setNameAt={ this.setNameAt }
+          removeGuest={ this.removeGuest }
+          pendingGuest={ this.state.pendingGuest }
+        />  
       </div>
     );
   }
-
 }
 
 export default App;
